@@ -14,7 +14,7 @@ def readsettings(settingsfilename):
 def getURLJSON(url,cachefilename):
     #for some reason fantasysharks works in wget, but not with curl or requests
     #TODO: implement caching to only redownload if it has been more than an hour
-    #call(["wget", url, "-O",cachefilename])
+    call(["wget", url, "-O",cachefilename,"-q"])
 
     file=open(cachefilename)
     retval=json.loads(file.read())
@@ -56,13 +56,16 @@ def scoreSTDPlayers(stdplayers,settings,pos):
             player["projScore"]=projScore
             posplayers.append(player)
     posplayers.sort(key= lambda player: player["projScore"],reverse=True)
-    minstarting=posplayers[settings["numTeams"]*settings["num"+pos]-1]["projScore"]
+    minstarting=posplayers[int(settings["numTeams"]*settings["num"+pos]-1)]["projScore"]
     maxvalue=posplayers[0]["projScore"]-minstarting
     #print "MAX VALUE %s: %d numStarters %d" % (pos,maxvalue,settings["numTeams"]*settings["num"+pos])
+    posrank=1
     for player in posplayers:
         player["value"]=player["projScore"]-minstarting
         player["aPos"]=pos;
+        player["aPosRank"]=pos+str(posrank)
         allPlayers.append(player)
+        posrank=posrank+1
 
 
 def defTypeMatch(Pos,group,settings):
@@ -101,9 +104,12 @@ def scoreIDPPlayers(idpplayers,settings,pos):
     minstarting=posplayers[settings["numTeams"]*settings["num"+pos]-1]["projScore"]
     maxvalue=posplayers[0]["projScore"]-minstarting
     #print "MAX VALUE %s: %d numStarters %d" % (pos,maxvalue,settings["numTeams"]*settings["num"+pos])
+    posrank=1
     for player in posplayers:
         player["value"]=player["projScore"]-minstarting
         player["aPos"]=pos;
+        player["aPosRank"]=pos+str(posrank)
+        posrank=posrank+1
         allPlayers.append(player)
 
 def scorePKPlayers(pkplayers,settings,pos):
@@ -118,16 +124,19 @@ def scorePKPlayers(pkplayers,settings,pos):
     minstarting=posplayers[settings["numTeams"]*settings["num"+pos]-1]["projScore"]
     maxvalue=posplayers[0]["projScore"]-minstarting
     #print "MAX VALUE %s: %d numStarters %d" % (pos,maxvalue,settings["numTeams"]*settings["num"+pos])
+    posrank=1
     for player in posplayers:
         player["value"]=player["projScore"]-minstarting-settings["SubtractFromPKValue"]
         player["aPos"]=pos;
+        player["aPosRank"]=pos+str(posrank)
+        posrank=posrank+1
 
         allPlayers.append(player)
 
 def printplayers(allPlayers):
     myRank=1
     for player in allPlayers:
-        print '%d,"%s","%s","%s",%s,%d' % (myRank,player["Name"],player['Team'],player['aPos'],player['ADP'],player['value'])
+        print '%d,"%s","%s","%s",%s,%d' % (myRank,player["Name"],player['Team'],player['aPosRank'],player['ADP'],player['value'])
         myRank=myRank+1
 
 if len(sys.argv)<2:
